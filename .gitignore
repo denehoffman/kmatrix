@@ -1,0 +1,9 @@
+**/NI_FILE
+*.fit
+*.log
+bin
+compiler_flags
+*.a
+*.o
+*.d
+*.root

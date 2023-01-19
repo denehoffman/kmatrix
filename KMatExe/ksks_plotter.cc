@@ -17,6 +17,7 @@
 
 #include "KMatPlot/KsKsPlotGenerator.h"
 #include "KMatDataIO/ROOTDataReader.h"
+#include "KMatAmp/Uniform.h"
 #include "KMatAmp/Zlm.h"
 #include "KMatAmp/BreitWigner.h"
 #include "KMatAmp/KMatrix2_A0.h"
@@ -32,6 +33,7 @@ void atiSetup() {
     // to create plots - this setup must happen before the
     // AmpToolsInterface is created
 
+    AmpToolsInterface::registerAmplitude(Uniform());
     AmpToolsInterface::registerAmplitude(Zlm());
     AmpToolsInterface::registerAmplitude(BreitWigner());
     AmpToolsInterface::registerAmplitude(KMatrix2_A0());
@@ -123,6 +125,7 @@ int main( int argc, char* argv[] ) {
                     else if (iplot == PlotGen::kAccMC) histname += "acc";
                     else break;
                     //if (iplot == PlotGen::kGenMC) histname += "gen";
+                    if (iplot == PlotGen::kGenMC) break; // maybe it won't load the generated MC?
                     if (iamp < amps.size()){
                         string ampName = amps[iamp];
                         histname += "_";

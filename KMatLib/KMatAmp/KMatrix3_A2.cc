@@ -85,7 +85,7 @@ void KMatrix3_A2::calcUserVars(GDouble** pKin, GDouble* userVars) const {
         temp_K = TensorProd(couplings[i], couplings[i]);
         GDouble denominator = (masses[i] * masses[i] - s);
         // if (masses[i] == m) {denominator += 1E-3;} // just in case
-        if (denominator < 1E-3) {denominator += 1E-3;} // just in case
+        if (denominator < 1E-6) {denominator += 1E-3;} // just in case
         temp_K /= denominator;
         temp_K += mat_bkg;
         // Loop over channels: 
@@ -145,7 +145,7 @@ complex<GDouble> KMatrix3_A2::calcAmplitude(GDouble** pKin, GDouble* userVars) c
         temp_P *= betas[i]; 
         GDouble denominator = (masses[i] * masses[i] - s);
         // if (masses[i] == m) {denominator += 1E-3;} // just in case
-        if (denominator < 1E-3) {denominator += 1E-3;} // just in case
+        if (denominator < 1E-6) {denominator += 1E-3;} // just in case
         temp_P /= denominator;
         // Loop over channels:
         SVector3 B_factor;

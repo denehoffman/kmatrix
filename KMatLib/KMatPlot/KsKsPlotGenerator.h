@@ -16,7 +16,7 @@ class KsKsPlotGenerator : public PlotGenerator {
 public:
   
     // create an index for different histograms
-    enum{kKsKsMass = 0, kCosTheta = 1, kPhi = 2, kt = 3, kCosThetaVMass = 4, kPhiVMass = 5, kNumHists = 6};
+    enum{kKsKsMass = 0, kKsKsMassFine, kCosTheta, kPhi, kt, kCosThetaVMass, kPhiVMass, kNumHists};
     KsKsPlotGenerator(const FitResults& results);
     
 private:

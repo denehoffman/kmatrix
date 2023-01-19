@@ -9,6 +9,7 @@
 
 KsKsPlotGenerator::KsKsPlotGenerator(const FitResults& results) : PlotGenerator(results) {
     bookHistogram(kKsKsMass, new Histogram1D(100, 1.0, 2.0, "ksksMass", "Invariant Mass of K_{S}K_{S}"));
+    bookHistogram(kKsKsMassFine, new Histogram1D(200, 1.0, 2.0, "ksksMassFine", "Invariant Mass of K_{S}K_{S}"));
     bookHistogram(kCosTheta, new Histogram1D(50, -1., 1., "cosTheta", "cos(#theta_{HX}) of Resonance Production"));
     bookHistogram(kPhi, new Histogram1D(50, -180, 180, "Phi", "#phi_{HX}"));
     bookHistogram(kt, new Histogram1D(100, 0, 2.00, "t", "-t"));
@@ -61,6 +62,7 @@ void KsKsPlotGenerator::projectEvent(Kinematics* kin) {
     GDouble t=(recoil-TargetP4).Mag2();
     
     fillHistogram(kKsKsMass, resonance.M());
+    fillHistogram(kKsKsMassFine, resonance.M());
     fillHistogram(kCosTheta, cosTheta);
     fillHistogram(kPhi, phi);
     fillHistogram(kt, -t); // fill with -t to make positive

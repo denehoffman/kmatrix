@@ -163,8 +163,8 @@ complex<GDouble> KMatrix3_A2::calcAmplitude(GDouble** pKin, GDouble* userVars) c
     SMatrix3 temp_inv;
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            temp_inv(i, j) = complex<GDouble>(userVars[i * 4 + j + 2],
-                                              userVars[i * 4 + j + 2 + 9]);
+            temp_inv(i, j) = complex<GDouble>(userVars[i * 3 + j + 2],
+                                              userVars[i * 3 + j + 2 + 9]);
         }
     }
     SVector3 res = temp_inv * vec_P;

@@ -18,6 +18,7 @@
 #include "KMatPlot/KsKsPlotGenerator.h"
 #include "KMatDataIO/ROOTDataReader.h"
 #include "KMatAmp/Uniform.h"
+#include "KMatAmp/PhaseSpace.h"
 #include "KMatAmp/Zlm.h"
 #include "KMatAmp/BreitWigner.h"
 #include "KMatAmp/KMatrix2_A0.h"
@@ -34,6 +35,7 @@ void atiSetup() {
     // AmpToolsInterface is created
 
     AmpToolsInterface::registerAmplitude(Uniform());
+    AmpToolsInterface::registerAmplitude(PhaseSpace());
     AmpToolsInterface::registerAmplitude(Zlm());
     AmpToolsInterface::registerAmplitude(BreitWigner());
     AmpToolsInterface::registerAmplitude(KMatrix2_A0());

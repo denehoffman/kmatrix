@@ -11,6 +11,7 @@
 
 #include "KMatDataIO/ROOTDataReader.h"
 #include "KMatAmp/Uniform.h"
+#include "KMatAmp/PhaseSpace.h"
 #include "KMatAmp/Zlm.h"
 #include "KMatAmp/BreitWigner.h"
 #include "KMatAmp/KMatrix2_A0.h"
@@ -304,6 +305,7 @@ int main( int argc, char* argv[] ){
 
    AmpToolsInterface::registerAmplitude( BreitWigner() );
    AmpToolsInterface::registerAmplitude( Uniform() );
+   AmpToolsInterface::registerAmplitude( PhaseSpace() );
    AmpToolsInterface::registerAmplitude( Zlm() );
    AmpToolsInterface::registerAmplitude( KMatrix2_A0() );
    AmpToolsInterface::registerAmplitude( KMatrix3_A2() );

@@ -130,8 +130,8 @@ void KMatrix5_F0::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     // Now mat_K should be done (ignore (s-s_0)/s_norm for now)
     SMatrix5 temp = SMatrixIdentity();
     mat_K *= mat_C;
+    mat_K *= ((s - 0.0091125) / 1); // Adler zero term
     temp += mat_K;
-    temp *= ((s - 0.0091125) / 1); // Adler zero term
     // Now temp is the stuff that we want to invert before multiplying by the P-vector
     SMatrix5 temp_inv = KMatrix5_F0::inverse5(temp);
     // Now we cache the results

@@ -25,6 +25,7 @@
 #include "KMatAmp/KMatrix3_A2.h"
 #include "KMatAmp/KMatrix4_F2.h"
 #include "KMatAmp/KMatrix5_F0.h"
+#include "KMatAmp/KMatrix5_F0b.h"
 
 typedef KsKsPlotGenerator PlotGen;
 
@@ -42,6 +43,7 @@ void atiSetup() {
     AmpToolsInterface::registerAmplitude(KMatrix3_A2());
     AmpToolsInterface::registerAmplitude(KMatrix4_F2());
     AmpToolsInterface::registerAmplitude(KMatrix5_F0());
+    AmpToolsInterface::registerAmplitude(KMatrix5_F0b());
 
     AmpToolsInterface::registerDataReader(ROOTDataReader());
 }

@@ -7,4 +7,4 @@ compiler_flags
 *.o
 *.d
 *.root
-run
+run/

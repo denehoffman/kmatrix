@@ -16,6 +16,7 @@
 #include "KMatAmp/KMatrix3_A2.h"
 #include "KMatAmp/KMatrix4_F2.h"
 #include "KMatAmp/KMatrix5_F0.h"
+#include "KMatAmp/KMatrix5_F0b.h"
 #include "KMatAmp/Uniform.h"
 #include "KMatAmp/PhaseSpace.h"
 
@@ -263,7 +264,7 @@ int main( int argc, char* argv[] ){
    AmpToolsInterface::registerAmplitude( KMatrix2_A0() );
    AmpToolsInterface::registerAmplitude( KMatrix3_A2() );
    AmpToolsInterface::registerAmplitude( KMatrix4_F2() );
-   AmpToolsInterface::registerAmplitude( KMatrix5_F0() );
+   AmpToolsInterface::registerAmplitude( KMatrix5_F0b() );
    AmpToolsInterface::registerAmplitude( Uniform() );
    AmpToolsInterface::registerAmplitude( PhaseSpace() );
 

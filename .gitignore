@@ -8,3 +8,4 @@ compiler_flags
 *.d
 *.root
 run/
+.DS_Store

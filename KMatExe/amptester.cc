@@ -13,6 +13,7 @@
 #include "KMatDataIO/ROOTDataReader.h"
 #include "KMatAmp/BreitWigner.h"
 #include "KMatAmp/Zlm.h"
+#include "KMatAmp/Ylm.h"
 #include "KMatAmp/KMatrix2_A0.h"
 #include "KMatAmp/KMatrix3_A2.h"
 #include "KMatAmp/KMatrix4_F2.h"
@@ -65,6 +66,7 @@ int main(int argc, char** argv){
 
     AmpToolsInterface::registerAmplitude(BreitWigner());
     AmpToolsInterface::registerAmplitude(Zlm());
+    AmpToolsInterface::registerAmplitude(Ylm());
     AmpToolsInterface::registerAmplitude(KMatrix2_A0());
     AmpToolsInterface::registerAmplitude(KMatrix3_A2());
     AmpToolsInterface::registerAmplitude(KMatrix4_F2());

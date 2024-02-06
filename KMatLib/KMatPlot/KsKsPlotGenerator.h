@@ -1,8 +1,8 @@
 #if !(defined KSKSPLOTGENERATOR)
 #define KSKSPLOTGENERATOR
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "IUAmpTools/PlotGenerator.h"
 
@@ -12,17 +12,24 @@ class FitResults;
 class Kinematics;
 
 class KsKsPlotGenerator : public PlotGenerator {
-    
+
 public:
-  
-    // create an index for different histograms
-    enum{kKsKsMass = 0, kKsKsMassFine, kCosTheta, kPhi, kt, kCosThetaVMass, kPhiVMass, kNumHists};
-    KsKsPlotGenerator(const FitResults& results);
-    
+  // create an index for different histograms
+  enum {
+    kKsKsMass = 0,
+    kKsKsMassFine,
+    kKsKsMassCourse,
+    kCosTheta,
+    kPhi,
+    kt,
+    kCosThetaVMass,
+    kPhiVMass,
+    kNumHists
+  };
+  KsKsPlotGenerator(const FitResults &results);
+
 private:
-        
-    void projectEvent(Kinematics* kin);
-  
+  void projectEvent(Kinematics *kin);
 };
 
 #endif

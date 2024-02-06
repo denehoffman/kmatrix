@@ -20,6 +20,7 @@
 #include "KMatAmp/Ylm.h"
 #include "KMatAmp/Zlm.h"
 #include "KMatDataIO/ROOTDataReader.h"
+#include "KMatDataIO/ROOTDataReaderBootstrap.h"
 
 #include "IUAmpTools/ConfigFileParser.h"
 #include "IUAmpTools/ConfigurationInfo.h"
@@ -354,6 +355,8 @@ int main(int argc, char *argv[]) {
   AmpToolsInterface::registerAmplitude(KMatrix5_F0b());
 
   AmpToolsInterface::registerDataReader(DataReaderMPI<ROOTDataReader>());
+  AmpToolsInterface::registerDataReader(
+      DataReaderMPI<ROOTDataReaderBootstrap>());
 
   if (numRnd == 0) {
     if (scanPar == "")

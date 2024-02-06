@@ -25,6 +25,7 @@
 #include "KMatAmp/Ylm.h"
 #include "KMatAmp/Zlm.h"
 #include "KMatDataIO/ROOTDataReader.h"
+#include "KMatDataIO/ROOTDataReaderBootstrap.h"
 #include "KMatPlot/KsKsPlotGenerator.h"
 
 typedef KsKsPlotGenerator PlotGen;
@@ -47,6 +48,7 @@ void atiSetup() {
   AmpToolsInterface::registerAmplitude(KMatrix5_F0b());
 
   AmpToolsInterface::registerDataReader(ROOTDataReader());
+  AmpToolsInterface::registerDataReader(ROOTDataReaderBootstrap());
 }
 
 //  THE USER SHOULD NOT HAVE TO CHANGE ANYTHING BELOW THIS LINE
@@ -89,67 +91,59 @@ int main(int argc, char *argv[]) {
   PlotGen plotGen(results);
   TFile *plotfile = new TFile(outName.c_str(), "recreate");
   TH1::AddDirectory(kFALSE);
-  // enable all reactions (I think this means all the polarizations we loop
-  // over)
+
   vector<string> reactionList = results.reactionList();
   for (unsigned int ireact = 0; ireact < reactionList.size(); ireact++) {
     plotGen.enableReaction(reactionList[ireact]);
   }
   vector<string> amps = plotGen.uniqueAmplitudes();
   // loop over amplitude configurations
-  for (unsigned int iamp = 0; iamp <= amps.size(); iamp++) {
-    // ^ on the final iteration, iamp is out of bounds so
-    // this just plots the sum of all amplitudes
-    // turn on all amplitudes
-    for (unsigned int i = 0; i < amps.size(); i++) {
-      plotGen.enableAmp(i);
-    }
-    // turn off all amplitudes but one (or keep all on)
-    if (iamp < amps.size()) {
-      for (unsigned int i = 0; i < amps.size(); i++) {
-        if (i != iamp)
-          plotGen.disableAmp(i);
-      }
-    }
-
-    // loop over data, accMC, and genMC
-    for (unsigned int iplot = 0; iplot < PlotGen::kNumTypes; iplot++) {
-      if (iamp < amps.size() && iplot == PlotGen::kData)
+  // for (unsigned int iamp = 0; iamp < amps.size(); iamp++) {
+  //   plotGen.disableAmp(iamp);
+  // }
+  for (unsigned int iplot = 0; iplot < PlotGen::kNumTypes; iplot++) {
+    // loop over different variables
+    vector<vector<unsigned int>> amplitudeGroups = {
+        {0, 1, 2, 3}, {0}, {1}, {2}, {3}, {0, 1}, {2, 3}};
+    for (size_t groupIndex = 0; groupIndex < amplitudeGroups.size();
+         ++groupIndex) {
+      const vector<unsigned int> &amplitudeGroup = amplitudeGroups[groupIndex];
+      if (groupIndex != 0 && iplot == PlotGen::kData)
         continue; // skip data plots for the individual amps
-
-      // loop over different variables
+      for (unsigned int iamp = 0; iamp < amps.size(); iamp++) {
+        plotGen.disableAmp(iamp);
+      }
       for (unsigned int ivar = 0; ivar < KsKsPlotGenerator::kNumHists; ivar++) {
-        for (unsigned int ireact = 0; ireact < reactionList.size(); ireact++) {
-          // name the histogram according to all the information
-          string histname = "h"; // sure, why not...
-          if (ivar == KsKsPlotGenerator::kKsKsMass)
-            histname += "KsKsMass";
-          if (ivar == KsKsPlotGenerator::kCosTheta)
-            break; // histname += "CosTheta";
-          if (ivar == KsKsPlotGenerator::kPhi)
-            break; // histname += "Phi";
-          if (ivar == KsKsPlotGenerator::kt)
-            break; // histname += "t";
-          if (ivar == KsKsPlotGenerator::kCosThetaVMass)
-            histname += "CosThetaVMass";
-          if (ivar == KsKsPlotGenerator::kPhiVMass)
-            histname += "PhiVMass";
-          if (iplot == PlotGen::kData)
-            histname += "dat"; // only true when iamp >= amps.size() aka the
-                               // total of all amplitudes
-          else if (iplot == PlotGen::kAccMC)
-            histname += "acc";
-          else
-            break;
-          // if (iplot == PlotGen::kGenMC) histname += "gen";
-          if (iplot == PlotGen::kGenMC)
-            break; // maybe it won't load the generated MC?
-          if (iamp < amps.size()) {
-            string ampName = amps[iamp];
-            histname += "_";
-            histname += ampName; // add the amplitude name to the fit also!
-          }
+        // name the histogram according to all the information
+        string histname = "h"; // sure, why not...
+        if (ivar == KsKsPlotGenerator::kKsKsMass)
+          histname += "M";
+        if (ivar == KsKsPlotGenerator::kKsKsMassCourse)
+          histname += "M_40bins_";
+        if (ivar == KsKsPlotGenerator::kCosTheta)
+          break; // histname += "CosTheta";
+        if (ivar == KsKsPlotGenerator::kPhi)
+          break; // histname += "Phi";
+        if (ivar == KsKsPlotGenerator::kt)
+          break; // histname += "t";
+        if (ivar == KsKsPlotGenerator::kCosThetaVMass)
+          break; // histname += "CosThetaVMass";
+        if (ivar == KsKsPlotGenerator::kPhiVMass)
+          break; // histname += "PhiVMass";
+        if (iplot == PlotGen::kData)
+          histname += "dat";
+        if (iplot == PlotGen::kAccMC)
+          histname += "acc";
+        if (iplot == PlotGen::kGenMC)
+          break;
+        for (unsigned int iamp : amplitudeGroup) {
+          plotGen.enableAmp(iamp);
+          string ampName = amps[iamp];
+          histname += "_";
+          histname += ampName;
+        }
 
+        for (unsigned int ireact = 0; ireact < reactionList.size(); ireact++) {
           Histogram *hist =
               plotGen.projection(ivar, reactionList[ireact], iplot);
           // set the axis labels according to the histogram information
@@ -177,8 +171,8 @@ int main(int argc, char *argv[]) {
           thist->Write();
         } // end ireact loop
       }   // end ivar loop
-    }     // end iplot loop
-  }       // end iamp loop
+    }     // end amplitude group loop
+  }       // end iplot loop
 
   plotfile->Close();
 
@@ -189,21 +183,21 @@ int main(int argc, char *argv[]) {
   // cout << ">> Plot generator ready, starting GUI..." << endl;
 
   /*int dummy_argc = 0;
-  char* dummy_argv[] = {};
-  TApplication app("app", &dummy_argc, dummy_argv);
+    char* dummy_argv[] = {};
+    TApplication app("app", &dummy_argc, dummy_argv);
 
-  gStyle->SetFillColor(10);
-  gStyle->SetCanvasColor(10);
-  gStyle->SetPadColor(10);
-  gStyle->SetFillStyle(1001);
-  gStyle->SetPalette(1);
-  gStyle->SetFrameFillColor(10);
-  gStyle->SetFrameFillStyle(1001);
+    gStyle->SetFillColor(10);
+    gStyle->SetCanvasColor(10);
+    gStyle->SetPadColor(10);
+    gStyle->SetFillStyle(1001);
+    gStyle->SetPalette(1);
+    gStyle->SetFrameFillColor(10);
+    gStyle->SetFrameFillStyle(1001);
 
-  PlotFactory factory(plotGen);
-  PlotterMainWindow mainFrame(gClient->GetRoot(), factory);
+    PlotFactory factory(plotGen);
+    PlotterMainWindow mainFrame(gClient->GetRoot(), factory);
 
-  app.Run();
-  */
+    app.Run();
+    */
   return 0;
 }

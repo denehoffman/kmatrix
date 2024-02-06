@@ -9,3 +9,6 @@ compiler_flags
 *.root
 run/
 .DS_Store
+tests/
+._.DS_Store
+.python-version

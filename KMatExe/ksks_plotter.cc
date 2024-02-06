@@ -15,10 +15,15 @@
 #include "AmpPlotter/PlotterMainWindow.h"
 
 #include "KMatAmp/BreitWigner.h"
+#include "KMatAmp/KMatrix2_A0_KsKs.h"
+#include "KMatAmp/KMatrix3_A2_KsKs.h"
+#include "KMatAmp/KMatrix4_F2_KsKs.h"
+#include "KMatAmp/KMatrix5_F0_KsKs.h"
 #include "KMatAmp/KMatrix2_A0.h"
 #include "KMatAmp/KMatrix3_A2.h"
 #include "KMatAmp/KMatrix4_F2.h"
 #include "KMatAmp/KMatrix5_F0.h"
+#include "KMatAmp/KMatrix2_Pi1.h"
 #include "KMatAmp/KMatrix5_F0b.h"
 #include "KMatAmp/PhaseSpace.h"
 #include "KMatAmp/Uniform.h"
@@ -36,15 +41,20 @@ void atiSetup() {
   // to create plots - this setup must happen before the
   // AmpToolsInterface is created
 
+  AmpToolsInterface::registerAmplitude(BreitWigner());
   AmpToolsInterface::registerAmplitude(Uniform());
   AmpToolsInterface::registerAmplitude(PhaseSpace());
   AmpToolsInterface::registerAmplitude(Zlm());
   AmpToolsInterface::registerAmplitude(Ylm());
-  AmpToolsInterface::registerAmplitude(BreitWigner());
+  AmpToolsInterface::registerAmplitude(KMatrix2_A0_KsKs());
+  AmpToolsInterface::registerAmplitude(KMatrix3_A2_KsKs());
+  AmpToolsInterface::registerAmplitude(KMatrix4_F2_KsKs());
+  AmpToolsInterface::registerAmplitude(KMatrix5_F0_KsKs());
   AmpToolsInterface::registerAmplitude(KMatrix2_A0());
   AmpToolsInterface::registerAmplitude(KMatrix3_A2());
   AmpToolsInterface::registerAmplitude(KMatrix4_F2());
   AmpToolsInterface::registerAmplitude(KMatrix5_F0());
+  AmpToolsInterface::registerAmplitude(KMatrix2_Pi1());
   AmpToolsInterface::registerAmplitude(KMatrix5_F0b());
 
   AmpToolsInterface::registerDataReader(ROOTDataReader());

@@ -1,5 +1,5 @@
-#if !defined(KMATRIX5_F0)
-#define KMATRIX5_F0
+#if !defined(KMATRIX5_F0_KSKS)
+#define KMATRIX5_F0_KSKS
 
 #include "IUAmpTools/Amplitude.h"
 #include "IUAmpTools/AmpParameter.h"
@@ -24,29 +24,36 @@ typedef SVector<complex<GDouble>, 5> SVector5;
 
 class Kinematics;
 
-class KMatrix5_F0: public UserAmplitude<KMatrix5_F0> {
+class KMatrix5_F0_KsKs: public UserAmplitude<KMatrix5_F0_KsKs> {
     public:
-        KMatrix5_F0(): UserAmplitude<KMatrix5_F0>() {}
-        KMatrix5_F0(const vector<string> &args);
+        KMatrix5_F0_KsKs(): UserAmplitude<KMatrix5_F0_KsKs>() {}
+        KMatrix5_F0_KsKs(const vector<string> &args);
 	    enum UserVars {kM = 0, kS,
-            k0re, k1re, k2re, k3re, k4re,
-            k0im, k1im, k2im, k3im, k4im,
+            k00re, k01re, k02re, k03re, k04re,
+            k10re, k11re, k12re, k13re, k14re,
+            k20re, k21re, k22re, k23re, k24re,
+            k30re, k31re, k32re, k33re, k34re,
+            k40re, k41re, k42re, k43re, k44re,
+            k00im, k01im, k02im, k03im, k04im,
+            k10im, k11im, k12im, k13im, k14im,
+            k20im, k21im, k22im, k23im, k24im,
+            k30im, k31im, k32im, k33im, k34im,
+            k40im, k41im, k42im, k43im, k44im,
             kNumUserVars};
         unsigned int numUserVars() const {return kNumUserVars;}
         void calcUserVars(GDouble** pKin, GDouble* userVars) const;
         bool needsUserVarsOnly() const {return true;}
         bool areUserVarsStatic() const {return true;}
         
-        ~KMatrix5_F0(){}
+        ~KMatrix5_F0_KsKs(){}
     
-        string name() const {return "KMatrix5_F0";}
+        string name() const {return "KMatrix5_F0_KsKs";}
 
         complex<GDouble> calcAmplitude(GDouble** pKin, GDouble* userVars) const;
         void updatePar(const AmpParameter &par);
 
     private:
         pair<string, string> m_daughters;
-        int channel;
         AmpParameter bf0500_re;
         AmpParameter bf0500_im;
         AmpParameter bf0980_re;

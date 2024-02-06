@@ -10,19 +10,18 @@
 #include "breakupMomentum.h"
 
 #include "IUAmpTools/Kinematics.h"
-#include "KMatrix3_A2.h"
+#include "KMatrix3_A2_KsKs.h"
 
 
-KMatrix3_A2::KMatrix3_A2(const vector<string> &args): UserAmplitude<KMatrix3_A2>(args) {
+KMatrix3_A2_KsKs::KMatrix3_A2_KsKs(const vector<string> &args): UserAmplitude<KMatrix3_A2_KsKs>(args) {
     /*
-     * Usage: KMatrix3_A2 <daughter 1> <daughter 2> <channel> <Re[f_0(400)]> <Im[f_0(400)]> ...
+     * Usage: KMatrix3_A2_KsKs <daughter 1> <daughter 2> <Re[f_0(400)]> <Im[f_0(400)]> ...
      */
 	m_daughters = pair<string, string>(args[0], args[1]);
-	channel = atoi(args[2].c_str());
-	ba21320_re = AmpParameter(args[3]);
-	ba21320_im = AmpParameter(args[4]);
-    ba21700_re = AmpParameter(args[5]);
-    ba21700_im = AmpParameter(args[6]);
+	ba21320_re = AmpParameter(args[2]);
+	ba21320_im = AmpParameter(args[3]);
+    ba21700_re = AmpParameter(args[4]);
+    ba21700_im = AmpParameter(args[5]);
     registerParameter(ba21320_re);
     registerParameter(ba21320_im);
     registerParameter(ba21700_re);
@@ -40,7 +39,7 @@ KMatrix3_A2::KMatrix3_A2(const vector<string> &args): UserAmplitude<KMatrix3_A2>
     mat_bkg = SMatrix3Sym(a_bkg.begin(), a_bkg.end());
 }
 
-void KMatrix3_A2::calcUserVars(GDouble** pKin, GDouble* userVars) const {
+void KMatrix3_A2_KsKs::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     TLorentzVector pTemp, pTot;
     //TLorentzVector p1, p2;
     /* This allows us to input something like
@@ -108,7 +107,7 @@ void KMatrix3_A2::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     }
     // Loop over channels
     for (int j = 0; j < 3; j++) {
-        mat_C(j, j) = KMatrix3_A2::chew(s, m1s[j], m2s[j]);
+        mat_C(j, j) = KMatrix3_A2_KsKs::chew(s, m1s[j], m2s[j]);
     }
     // Now mat_K should be done (ignore (s-s_0)/s_norm for now)
     SMatrix3 temp = SMatrixIdentity();
@@ -116,17 +115,21 @@ void KMatrix3_A2::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     temp += mat_K;
     // temp *= ((s - 0.0091125) / 1); // Adler zero term only in f0
     // Now temp is the stuff that we want to invert before multiplying by the P-vector
-    SMatrix3 temp_inv = KMatrix3_A2::inverse3(temp);
+    SMatrix3 temp_inv = KMatrix3_A2_KsKs::inverse3(temp);
     // Now we cache the results
+    // Note that it doesn't matter if I store it (i, j) or (j, i) as
+    // long as I'm consistent later when unpacking it...
     for (int i = 0; i < 3; i++) {
-        userVars[i + 2] = temp_inv(channel, i).real(); // +2 because kM and kS are first in the enum
-        userVars[i + 2 + 3] = temp_inv(channel, i).imag(); // +3 to skip the real parts 
+        for (int j = 0; j < 3; j++) {
+            userVars[i * 3 + j + 2] = temp_inv(i, j).real(); // +2 because kM and kS are first in the enum
+            userVars[i * 3 + j + 2 + 9] = temp_inv(i, j).imag(); // +9 to skip the real parts 
+        }
     }
 }
 
 
 
-complex<GDouble> KMatrix3_A2::calcAmplitude(GDouble** pKin, GDouble* userVars) const {
+complex<GDouble> KMatrix3_A2_KsKs::calcAmplitude(GDouble** pKin, GDouble* userVars) const {
     GDouble m = userVars[kM]; 
     GDouble s = userVars[kS];
     SVector3 vec_P;
@@ -157,14 +160,18 @@ complex<GDouble> KMatrix3_A2::calcAmplitude(GDouble** pKin, GDouble* userVars) c
         temp_P = temp_P * B_factor;
         vec_P += temp_P;
     }
-    SVector3 temp_inv;
+    SMatrix3 temp_inv;
     for (int i = 0; i < 3; i++) {
-        temp_inv(i) = complex<GDouble>(userVars[i + 2], userVars[i + 2 + 3]);
+        for (int j = 0; j < 3; j++) {
+            temp_inv(i, j) = complex<GDouble>(userVars[i * 3 + j + 2],
+                                              userVars[i * 3 + j + 2 + 9]);
+        }
     }
-    return Dot(temp_inv, vec_P);
+    SVector3 res = temp_inv * vec_P;
+    return res[1]; // return the KK channel contribution
 }
 
-SMatrix3 KMatrix3_A2::inverse3(SMatrix3 A) const {
+SMatrix3 KMatrix3_A2_KsKs::inverse3(SMatrix3 A) const {
     SMatrix3 M;
     SMatrix3 I = SMatrixIdentity();
     SMatrix3 temp;
@@ -177,19 +184,19 @@ SMatrix3 KMatrix3_A2::inverse3(SMatrix3 A) const {
     return M / (-1.0 * c);
 }
 
-complex<GDouble> KMatrix3_A2::rho(double s, double m1, double m2) const {
+complex<GDouble> KMatrix3_A2_KsKs::rho(double s, double m1, double m2) const {
     return sqrt(complex<GDouble>(((1 - ((m1 + m2) * (m1 + m2) / s)) * (1 - ((m1 - m2) * (m1 - m2) / s))), 0));
 }
 
-complex<GDouble> KMatrix3_A2::xi(double s, double m1, double m2) const {
+complex<GDouble> KMatrix3_A2_KsKs::xi(double s, double m1, double m2) const {
     return complex<GDouble>(1 - ((m1 + m2) * (m1 + m2) / s), 0);
 }
 
-complex<GDouble> KMatrix3_A2::chew(double s, double m1, double m2) const {
+complex<GDouble> KMatrix3_A2_KsKs::chew(double s, double m1, double m2) const {
     complex<GDouble> tot = 0;
-    tot += (KMatrix3_A2::rho(s, m1, m2) / Pi()) * log((KMatrix3_A2::xi(s, m1, m2) + KMatrix3_A2::rho(s, m1, m2)) / (KMatrix3_A2::xi(s, m1, m2) - KMatrix3_A2::rho(s, m1, m2)));
-    tot -= (KMatrix3_A2::xi(s, m1, m2) / Pi()) * ((m2 - m1) / (m1 + m2)) * log(m2 / m1);
+    tot += (KMatrix3_A2_KsKs::rho(s, m1, m2) / Pi()) * log((KMatrix3_A2_KsKs::xi(s, m1, m2) + KMatrix3_A2_KsKs::rho(s, m1, m2)) / (KMatrix3_A2_KsKs::xi(s, m1, m2) - KMatrix3_A2_KsKs::rho(s, m1, m2)));
+    tot -= (KMatrix3_A2_KsKs::xi(s, m1, m2) / Pi()) * ((m2 - m1) / (m1 + m2)) * log(m2 / m1);
     return tot;
 }
 
-void KMatrix3_A2::updatePar(const AmpParameter &par) {}
+void KMatrix3_A2_KsKs::updatePar(const AmpParameter &par) {}

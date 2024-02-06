@@ -15,13 +15,14 @@
 
 KMatrix2_A0::KMatrix2_A0(const vector<string> &args): UserAmplitude<KMatrix2_A0>(args) {
     /*
-     * Usage: KMatrix2_A0 <daughter 1> <daughter 2> <Re[f_0(400)]> <Im[f_0(400)]> ...
+     * Usage: KMatrix2_A0 <daughter 1> <daughter 2> <channel> <Re[f_0(400)]> <Im[f_0(400)]> ...
      */
 	m_daughters = pair<string, string>(args[0], args[1]);
-	ba0980_re = AmpParameter(args[2]);
-	ba0980_im = AmpParameter(args[3]);
-    ba01450_re = AmpParameter(args[4]);
-    ba01450_im = AmpParameter(args[5]);
+	channel = atoi(args[2].c_str());
+	ba0980_re = AmpParameter(args[3]);
+	ba0980_im = AmpParameter(args[4]);
+    ba01450_re = AmpParameter(args[5]);
+    ba01450_im = AmpParameter(args[6]);
     registerParameter(ba0980_re);
     registerParameter(ba0980_im);
     registerParameter(ba01450_re);
@@ -84,7 +85,7 @@ void KMatrix2_A0::calcUserVars(GDouble** pKin, GDouble* userVars) const {
         temp_K = TensorProd(couplings[i], couplings[i]);
         GDouble denominator = (masses[i] * masses[i] - s);
         // if (masses[i] == m) {denominator += 1E-3;} // just in case
-        if (denominator < 1E-6) {denominator += 1E-3;} // just in case
+        // if (denominator < 1E-6) {denominator += 1E-3;} // just in case
         temp_K /= denominator;
         temp_K += mat_bkg;
         // Loop over channels: 
@@ -116,13 +117,9 @@ void KMatrix2_A0::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     // Now temp is the stuff that we want to invert before multiplying by the P-vector
     SMatrix2 temp_inv = KMatrix2_A0::inverse2(temp);
     // Now we cache the results
-    // Note that it doesn't matter if I store it (i, j) or (j, i) as
-    // long as I'm consistent later when unpacking it...
     for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-            userVars[i * 2 + j + 2] = temp_inv(i, j).real(); // +2 because kM and kS are first in the enum
-            userVars[i * 2 + j + 2 + 4] = temp_inv(i, j).imag(); // +4 to skip the real parts 
-        }
+        userVars[i + 2] = temp_inv(channel, i).real(); // +2 because kM and kS are first in the enum
+        userVars[i + 2 + 2] = temp_inv(channel, i).imag(); // +2 to skip the real parts 
     }
 }
 
@@ -144,7 +141,7 @@ complex<GDouble> KMatrix2_A0::calcAmplitude(GDouble** pKin, GDouble* userVars) c
         temp_P *= betas[i]; 
         GDouble denominator = (masses[i] * masses[i] - s);
         // if (masses[i] == m) {denominator += 1E-3;} // just in case
-        if (denominator < 1E-6) {denominator += 1E-3;} // just in case
+        // if (denominator < 1E-6) {denominator += 1E-3;} // just in case
         temp_P /= denominator;
         // Loop over channels:
         SVector2 B_factor;
@@ -159,15 +156,11 @@ complex<GDouble> KMatrix2_A0::calcAmplitude(GDouble** pKin, GDouble* userVars) c
         temp_P = temp_P * B_factor;
         vec_P += temp_P;
     }
-    SMatrix2 temp_inv;
+    SVector2 temp_inv;
     for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-            temp_inv(i, j) = complex<GDouble>(userVars[i * 2 + j + 2],
-                                              userVars[i * 2 + j + 2 + 4]);
-        }
+        temp_inv(i) = complex<GDouble>(userVars[i + 2], userVars[i + 2 + 2]);
     }
-    SVector2 res = temp_inv * vec_P;
-    return res[1]; // return the KK channel contribution
+    return Dot(temp_inv, vec_P);
 }
 
 SMatrix2 KMatrix2_A0::inverse2(SMatrix2 A) const {

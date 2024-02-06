@@ -29,10 +29,8 @@ class KMatrix2_A0: public UserAmplitude<KMatrix2_A0> {
         KMatrix2_A0(): UserAmplitude<KMatrix2_A0>() {}
         KMatrix2_A0(const vector<string> &args);
 	    enum UserVars {kM = 0, kS,
-            k00re, k01re,
-            k10re, k11re,
-            k00im, k01im,
-            k10im, k11im,
+            k0re, k1re,
+            k0im, k1im,
             kNumUserVars};
         unsigned int numUserVars() const {return kNumUserVars;}
         void calcUserVars(GDouble** pKin, GDouble* userVars) const;
@@ -48,6 +46,7 @@ class KMatrix2_A0: public UserAmplitude<KMatrix2_A0> {
 
     private:
         pair<string, string> m_daughters;
+        int channel;
         AmpParameter ba0980_re;
         AmpParameter ba0980_im;
         AmpParameter ba01450_re;

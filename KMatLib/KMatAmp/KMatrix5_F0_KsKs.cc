@@ -10,25 +10,24 @@
 #include "breakupMomentum.h"
 
 #include "IUAmpTools/Kinematics.h"
-#include "KMatrix5_F0.h"
+#include "KMatrix5_F0_KsKs.h"
 
 
-KMatrix5_F0::KMatrix5_F0(const vector<string> &args): UserAmplitude<KMatrix5_F0>(args) {
+KMatrix5_F0_KsKs::KMatrix5_F0_KsKs(const vector<string> &args): UserAmplitude<KMatrix5_F0_KsKs>(args) {
     /*
-     * Usage: KMatrix5_F0 <daughter 1> <daughter 2> <channel> <Re[f_0(500)]> <Im[f_0(500)]> ...
+     * Usage: KMatrix5_F0_KsKs <daughter 1> <daughter 2> <Re[f_0(500)]> <Im[f_0(500)]> ...
      */
 	m_daughters = pair<string, string>(args[0], args[1]);
-	channel = atoi(args[2].c_str());
-	bf0500_re = AmpParameter(args[3]);
-	bf0500_im = AmpParameter(args[4]);
-    bf0980_re = AmpParameter(args[5]);
-    bf0980_im = AmpParameter(args[6]);
-    bf01370_re = AmpParameter(args[7]);
-    bf01370_im = AmpParameter(args[8]);
-    bf01500_re = AmpParameter(args[9]);
-    bf01500_im = AmpParameter(args[10]);
-    bf01710_re = AmpParameter(args[11]);
-    bf01710_im = AmpParameter(args[12]);
+	bf0500_re = AmpParameter(args[2]);
+	bf0500_im = AmpParameter(args[3]);
+    bf0980_re = AmpParameter(args[4]);
+    bf0980_im = AmpParameter(args[5]);
+    bf01370_re = AmpParameter(args[6]);
+    bf01370_im = AmpParameter(args[7]);
+    bf01500_re = AmpParameter(args[8]);
+    bf01500_im = AmpParameter(args[9]);
+    bf01710_re = AmpParameter(args[10]);
+    bf01710_im = AmpParameter(args[11]);
     registerParameter(bf0500_re);
     registerParameter(bf0500_im);
     registerParameter(bf0980_re);
@@ -58,7 +57,7 @@ KMatrix5_F0::KMatrix5_F0(const vector<string> &args): UserAmplitude<KMatrix5_F0>
 }
 
 
-void KMatrix5_F0::calcUserVars(GDouble** pKin, GDouble* userVars) const {
+void KMatrix5_F0_KsKs::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     TLorentzVector pTemp, pTot;
     //TLorentzVector p1, p2;
     /* This allows us to input something like
@@ -126,7 +125,7 @@ void KMatrix5_F0::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     }
     // Loop over channels
     for (int j = 0; j < 5; j++) {
-        mat_C(j, j) = KMatrix5_F0::chew(s, m1s[j], m2s[j]);
+        mat_C(j, j) = KMatrix5_F0_KsKs::chew(s, m1s[j], m2s[j]);
     }
     // Now mat_K should be done (ignore (s-s_0)/s_norm for now)
     SMatrix5 temp = SMatrixIdentity();
@@ -134,15 +133,19 @@ void KMatrix5_F0::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     mat_K *= ((s - 0.0091125) / 1); // Adler zero term
     temp += mat_K;
     // Now temp is the stuff that we want to invert before multiplying by the P-vector
-    SMatrix5 temp_inv = KMatrix5_F0::inverse5(temp);
+    SMatrix5 temp_inv = KMatrix5_F0_KsKs::inverse5(temp);
     // Now we cache the results
+    // Note that it doesn't matter if I store it (i, j) or (j, i) as
+    // long as I'm consistent later when unpacking it...
     for (int i = 0; i < 5; i++) {
-        userVars[i + 2] = temp_inv(channel, i).real(); // +2 because kM and kS are first in the enum
-        userVars[i + 2 + 5] = temp_inv(channel, i).imag(); // +5 to skip the real parts 
+        for (int j = 0; j < 5; j++) {
+            userVars[i * 5 + j + 2] = temp_inv(i, j).real(); // +2 because kM and kS are first in the enum
+            userVars[i * 5 + j + 2 + 25] = temp_inv(i, j).imag(); // +25 to skip the real parts 
+        }
     }
 }
 
-complex<GDouble> KMatrix5_F0::calcAmplitude(GDouble** pKin, GDouble* userVars) const {
+complex<GDouble> KMatrix5_F0_KsKs::calcAmplitude(GDouble** pKin, GDouble* userVars) const {
     GDouble m = userVars[kM]; 
     GDouble s = userVars[kS];
     SVector5 vec_P;
@@ -176,14 +179,19 @@ complex<GDouble> KMatrix5_F0::calcAmplitude(GDouble** pKin, GDouble* userVars) c
         temp_P = temp_P * B_factor;
         vec_P += temp_P;
     }
-    SVector5 temp_inv;
+    SMatrix5 temp_inv;
     for (int i = 0; i < 5; i++) {
-        temp_inv(i) = complex<GDouble>(userVars[i + 2], userVars[i + 2 + 5]);
+        for (int j = 0; j < 5; j++) {
+            temp_inv(i, j) = complex<GDouble>(userVars[i * 5 + j + 2],
+                                              userVars[i * 5 + j + 2 + 25]);
+        }
     }
-    return Dot(temp_inv, vec_P);
+    SVector5 res = temp_inv * vec_P;
+
+    return res[2]; // return the KK channel contribution
 }
 
-SMatrix5 KMatrix5_F0::inverse5(SMatrix5 A) const {
+SMatrix5 KMatrix5_F0_KsKs::inverse5(SMatrix5 A) const {
     SMatrix5 M;
     SMatrix5 I = SMatrixIdentity();
     SMatrix5 temp;
@@ -196,19 +204,19 @@ SMatrix5 KMatrix5_F0::inverse5(SMatrix5 A) const {
     return M / (-1.0 * c);
 }
 
-complex<GDouble> KMatrix5_F0::rho(double s, double m1, double m2) const {
+complex<GDouble> KMatrix5_F0_KsKs::rho(double s, double m1, double m2) const {
     return sqrt(complex<GDouble>(((1 - ((m1 + m2) * (m1 + m2) / s)) * (1 - ((m1 - m2) * (m1 - m2) / s))), 0));
 }
 
-complex<GDouble> KMatrix5_F0::xi(double s, double m1, double m2) const {
+complex<GDouble> KMatrix5_F0_KsKs::xi(double s, double m1, double m2) const {
     return complex<GDouble>(1 - ((m1 + m2) * (m1 + m2) / s), 0);
 }
 
-complex<GDouble> KMatrix5_F0::chew(double s, double m1, double m2) const {
+complex<GDouble> KMatrix5_F0_KsKs::chew(double s, double m1, double m2) const {
     complex<GDouble> tot = 0;
-    tot += (KMatrix5_F0::rho(s, m1, m2) / Pi()) * log((KMatrix5_F0::xi(s, m1, m2) + KMatrix5_F0::rho(s, m1, m2)) / (KMatrix5_F0::xi(s, m1, m2) - KMatrix5_F0::rho(s, m1, m2)));
-    tot -= (KMatrix5_F0::xi(s, m1, m2) / Pi()) * ((m2 - m1) / (m1 + m2)) * log(m2 / m1);
+    tot += (KMatrix5_F0_KsKs::rho(s, m1, m2) / Pi()) * log((KMatrix5_F0_KsKs::xi(s, m1, m2) + KMatrix5_F0_KsKs::rho(s, m1, m2)) / (KMatrix5_F0_KsKs::xi(s, m1, m2) - KMatrix5_F0_KsKs::rho(s, m1, m2)));
+    tot -= (KMatrix5_F0_KsKs::xi(s, m1, m2) / Pi()) * ((m2 - m1) / (m1 + m2)) * log(m2 / m1);
     return tot;
 }
 
-void KMatrix5_F0::updatePar(const AmpParameter &par) {}
+void KMatrix5_F0_KsKs::updatePar(const AmpParameter &par) {}

@@ -71,6 +71,7 @@ class KMatrix4_F2: public UserAmplitude<KMatrix4_F2> {
         complex<GDouble> rho(double s, double m1, double m2) const;
         complex<GDouble> xi(double s, double m1, double m2) const;
         complex<GDouble> chew(double s, double m1, double m2) const;
-
+        complex<GDouble> poleProduct(double s) const;
+        complex<GDouble> poleProductRemainder(double s, size_t index) const;
 };
 #endif

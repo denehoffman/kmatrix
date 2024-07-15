@@ -78,11 +78,8 @@ void KMatrix2_Pi1::calcUserVars(GDouble** pKin, GDouble* userVars) const {
         SMatrix2 temp_K; // Initialized as a 4x4 0-matrix
         SMatrix2 temp_B;
         temp_K = TensorProd(couplings[i], couplings[i]);
-        GDouble denominator = (masses[i] * masses[i] - s);
-        // if (masses[i] == m) {denominator += 1E-3;} // just in case
-        // if (denominator < 1E-6) {denominator += 1E-3;} // just in case
-        temp_K /= denominator;
-        temp_K += mat_bkg;
+        temp_K += (mat_bkg * (masses[i] * masses[i] - s));
+        temp_K *= KMatrix2_Pi1::poleProductRemainder(s, i);
         // Loop over channels: 
         SVector2 B_factor;
         for (int j = 0; j < 2; j++) {
@@ -104,12 +101,13 @@ void KMatrix2_Pi1::calcUserVars(GDouble** pKin, GDouble* userVars) const {
     for (int j = 0; j < 2; j++) {
         mat_C(j, j) = KMatrix2_Pi1::chew(s, m1s[j], m2s[j]);
     }
-    // Now mat_K should be done (ignore (s-s_0)/s_norm for now)
-    SMatrix2 temp = SMatrixIdentity();
+    SMatrix2 temp;
+    complex<GDouble> product = KMatrix2_Pi1::poleProduct(s);
+    for (int i = 0; i < 2; ++i) {
+        temp(i, i) = product;
+    }
     mat_K *= mat_C;
     temp += mat_K;
-    // temp *= ((s - 0.0091125) / 1); // Adler zero term only in f0
-    // Now temp is the stuff that we want to invert before multiplying by the P-vector
     SMatrix2 temp_inv = KMatrix2_Pi1::inverse2(temp);
     // Now we cache the results
     for (int i = 0; i < 2; i++) {
@@ -133,10 +131,7 @@ complex<GDouble> KMatrix2_Pi1::calcAmplitude(GDouble** pKin, GDouble* userVars) 
         SMatrix2 temp_B;
         temp_P = couplings[i];
         temp_P *= betas[i]; 
-        GDouble denominator = (masses[i] * masses[i] - s);
-        // if (masses[i] == m) {denominator += 1E-3;} // just in case
-        // if (denominator < 1E-6) {denominator += 1E-3;} // just in case
-        temp_P /= denominator;
+        temp_P *= KMatrix2_Pi1::poleProductRemainder(s, i);
         // Loop over channels:
         SVector2 B_factor;
         for (int j = 0; j < 2; j++) {
@@ -182,6 +177,23 @@ complex<GDouble> KMatrix2_Pi1::chew(double s, double m1, double m2) const {
     complex<GDouble> tot = 0;
     tot += (KMatrix2_Pi1::rho(s, m1, m2) / Pi()) * log((KMatrix2_Pi1::xi(s, m1, m2) + KMatrix2_Pi1::rho(s, m1, m2)) / (KMatrix2_Pi1::xi(s, m1, m2) - KMatrix2_Pi1::rho(s, m1, m2)));
     tot -= (KMatrix2_Pi1::xi(s, m1, m2) / Pi()) * ((m2 - m1) / (m1 + m2)) * log(m2 / m1);
+    return tot;
+}
+
+complex<GDouble> KMatrix2_Pi1::poleProduct(double s) const {
+    complex<GDouble> tot = 1;
+    for (size_t i = 0; i < masses.size(); ++i) {
+        tot *= complex<GDouble>(masses[i] * masses[i] - s);
+    }
+    return tot;
+}
+
+complex<GDouble> KMatrix2_Pi1::poleProductRemainder(double s, size_t index) const {
+    complex<GDouble> tot = 1;
+    for (size_t i = 0; i < masses.size(); ++i) {
+        if (i == index) continue;
+        tot *= complex<GDouble>(masses[i] * masses[i] - s);
+    }
     return tot;
 }
 
